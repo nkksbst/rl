@@ -30,11 +30,11 @@ class DQNAgent():
                                name = self.env_name + '_' + self.algo + '_q_eval',
                                chkpt_dir = self.chkpt_dir)
 
-    self.device = T.device(T.device('cuda'))
-    self.q_eval = nn.DataParallel(self.q_eval, device_ids=[0,1,2,3,4]).to(self.device)
+    self.q_eval.device = T.device(T.device('cuda'))
+    self.q_eval = nn.DataParallel(self.q_eval, device_ids=[0,1,2,3,4]).to(self.q_eval.device)
 
     #
-    #self.q_eval.to(self.device)
+    #self.q_eval.to(self.q_eval.module.device)
 
     # backpop never happens in q_next - we only use this for target
     self.q_next = DeepQNetwork(self.lr, self.n_actions,
@@ -47,7 +47,7 @@ class DQNAgent():
       action = np.random.choice(self.action_space)
     else: # exploitation
       # state is in a list i.e. [state] because NN network takes inputs of the form batch size x input_dims
-      state = T.tensor([state], dtype=T.float).to(self.device)
+      state = T.tensor([state], dtype=T.float).to(self.q_eval.module.device)
       Q_values = self.q_eval.forward(state)
       action = T.argmax(Q_values).item() # to numpy array
     return action
@@ -59,11 +59,11 @@ class DQNAgent():
     state, action, reward, new_state, done = \
         self.memory.sample_buffer(self.batch_size)
 
-    states = T.tensor(state).to(self.device)
-    rewards = T.tensor(reward).to(self.device)
-    dones = T.tensor(done).to(self.device)
-    actions = T.tensor(action).to(self.device)
-    states_ = T.tensor(new_state).to(self.device)
+    states = T.tensor(state).to(self.q_eval.module.device)
+    rewards = T.tensor(reward).to(self.q_eval.module.device)
+    dones = T.tensor(done).to(self.q_eval.module.device)
+    actions = T.tensor(action).to(self.q_eval.module.device)
+    states_ = T.tensor(new_state).to(self.q_eval.module.device)
 
     return states, rewards, actions, states_, dones
 
@@ -108,7 +108,7 @@ class DQNAgent():
 
     q_target = rewards + self.gamma * q_next
 
-    loss = self.q_eval.loss(q_target, q_pred).to(self.device) # difference between target and current Q values
+    loss = self.q_eval.loss(q_target, q_pred).to(self.q_eval.module.device) # difference between target and current Q values
     loss.backward() # backpropagate
     self.q_eval.optimizer.step() # update weights
 
