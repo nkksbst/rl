@@ -64,17 +64,17 @@ class DQNAgent():
 
   def replace_target_network(self):
     if self.learn_step_counter % self.replace_target_cnt == 0:
-      self.q_next.load_state_dict(self.q_eval.state_dict()) # update weights of target network the same with the behavior network
+      self.q_next.load_state_dict(self.q_eval.module.state_dict()) # update weights of target network the same with the behavior network
 
   def decrement_epsilon(self):
     self.epsilon = self.epsilon - self.eps_dec if self.epsilon > self.eps_min else self.eps_min
 
   def save_models(self):
-    self.q_eval.save_checkpoint()
+    self.q_eval.module.save_checkpoint()
     self.q_next.save_checkpoint()
 
   def load_models(self):
-    self.q_eval.load_checkpoint()
+    self.q_eval.module.load_checkpoint()
     self.q_next.load_checkpoint()
 
   def learn(self):
@@ -82,14 +82,14 @@ class DQNAgent():
     if(self.memory.mem_cntr < self.batch_size):
         return
 
-    self.q_eval.optimizer.zero_grad()
+    self.q_eval.module.optimizer.zero_grad()
 
     self.replace_target_network()
 
     states, rewards, actions, states_, dones = self.sample_memory()
 
     indices = np.arange(self.batch_size)
-    q_pred = self.q_eval.forward(states)[indices, actions]
+    q_pred = self.q_eval.module.forward(states)[indices, actions]
 
     # self.q_eval.forward(states) --> batch_size x n_actions = 32 x 6
 
@@ -103,8 +103,8 @@ class DQNAgent():
 
     q_target = rewards + self.gamma * q_next
 
-    loss = self.q_eval.loss(q_target, q_pred).to(self.q_eval.module.device) # difference between target and current Q values
+    loss = self.q_eval.module.loss(q_target, q_pred).to(self.q_eval.module.device) # difference between target and current Q values
     loss.backward() # backpropagate
-    self.q_eval.optimizer.step() # update weights
+    self.q_eval.module.optimizer.step() # update weights
 
     self.decrement_epsilon()
