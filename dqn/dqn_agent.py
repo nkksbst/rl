@@ -87,14 +87,14 @@ class DQNAgent():
     if(self.memory.mem_cntr < self.batch_size):
         return
 
-    self.q_eval.optimizer.zero_grad()
+    self.q_eval.module.optimizer.zero_grad()
 
     self.replace_target_network()
 
     states, rewards, actions, states_, dones = self.sample_memory()
 
     indices = np.arange(self.batch_size)
-    q_pred = self.q_eval.forward(states)[indices, actions]
+    q_pred = self.q_eval.module.forward(states)[indices, actions]
 
     # self.q_eval.forward(states) --> batch_size x n_actions = 32 x 6
 
