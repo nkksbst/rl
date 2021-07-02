@@ -1,3 +1,5 @@
+import torch
+
 def plot_learning_curve(x, scores, epsilons, filename):
     fig = plt.figure()
     ax = fig.add_subplot(111, label="1")
