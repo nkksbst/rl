@@ -22,6 +22,8 @@ class DQNAgent():
     self.chkpt_dir = chkpt_dir
     self.action_space = [i for i in range(self.n_actions)]
     self.learn_step_counter = 0 # learning trigger
+    self.device = T.device(T.device('cuda'))
+    self.to(self.device)
 
     self.memory = ReplayBuffer(mem_size, input_dims, n_actions)
 
@@ -43,7 +45,7 @@ class DQNAgent():
       action = np.random.choice(self.action_space)
     else: # exploitation
       # state is in a list i.e. [state] because NN network takes inputs of the form batch size x input_dims
-      state = T.tensor([state], dtype=T.float).to(self.q_eval.device)
+      state = T.tensor([state], dtype=T.float).to(self.device)
       Q_values = self.q_eval.forward(state)
       action = T.argmax(Q_values).item() # to numpy array
     return action
@@ -55,11 +57,11 @@ class DQNAgent():
     state, action, reward, new_state, done = \
         self.memory.sample_buffer(self.batch_size)
 
-    states = T.tensor(state).to(self.q_eval.device)
-    rewards = T.tensor(reward).to(self.q_eval.device)
-    dones = T.tensor(done).to(self.q_eval.device)
-    actions = T.tensor(action).to(self.q_eval.device)
-    states_ = T.tensor(new_state).to(self.q_eval.device)
+    states = T.tensor(state).to(self.device)
+    rewards = T.tensor(reward).to(self.device)
+    dones = T.tensor(done).to(self.device)
+    actions = T.tensor(action).to(self.device)
+    states_ = T.tensor(new_state).to(self.device)
 
     return states, rewards, actions, states_, dones
 
@@ -104,7 +106,7 @@ class DQNAgent():
 
     q_target = rewards + self.gamma * q_next
 
-    loss = self.q_eval.loss(q_target, q_pred).to(self.q_eval.device) # difference between target and current Q values
+    loss = self.q_eval.loss(q_target, q_pred).to(self.device) # difference between target and current Q values
     loss.backward() # backpropagate
     self.q_eval.optimizer.step() # update weights
 
