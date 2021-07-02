@@ -2,7 +2,7 @@ import gym
 from dqn import DQNAgent
 from util import plot_learning_curve
 import numpy as np
-
+import os
 def make_env(env_name, shape=(84,84,1), repeat = 4, clip_rewards = False, no_ops=0, fire_first=False):
   # no-ops : number of operations to skip during test mode
 

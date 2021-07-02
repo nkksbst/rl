@@ -1,7 +1,6 @@
 from util import ReplayBuffer
 from dqn import DeepQNetwork
 
-
 class DQNAgent():
   def __init__(self, gamma, epsilon, lr, n_actions, input_dims, mem_size,
                batch_size, eps_min = 0.01, eps_dec = 5e-7,
