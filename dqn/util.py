@@ -119,7 +119,7 @@ class ReplayBuffer(object):
                                      dtype=np.float32)
     self.action_memory = np.zeros(self.mem_size, dtype=np.int64)
     self.reward_memory = np.zeros(self.mem_size, dtype=np.float32)
-    self.terminal_memory = np.zeros(self.mem_size, dtype=np.uint8)
+    self.terminal_memory = np.zeros(self.mem_size, dtype=np.bool)
 
   def store_transition(self, state, action, reward, state_, done):
     # store the memories in the position of the first unoccupied memory
