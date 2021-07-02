@@ -1,10 +1,7 @@
 import gym
 from dqn_agent import DQNAgent
-<<<<<<< HEAD
 from util import plot_learning_curve
-=======
 from util import plot_learning_curve, RepeatActionAndMaxFrame, PreprocessFrame, StackFrames
->>>>>>> e6ebdf012c8d20017e51e8ce2207db3a5f615d58
 import numpy as np
 import os
 
