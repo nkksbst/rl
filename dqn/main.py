@@ -1,8 +1,14 @@
 import gym
 from dqn_agent import DQNAgent
+<<<<<<< HEAD
 from util import plot_learning_curve
+=======
+from util import plot_learning_curve, RepeatActionAndMaxFrame, PreprocessFrame, StackFrames
+>>>>>>> e6ebdf012c8d20017e51e8ce2207db3a5f615d58
 import numpy as np
 import os
+
+src_dir = ''
 def make_env(env_name, shape=(84,84,1), repeat = 4, clip_rewards = False, no_ops=0, fire_first=False):
   # no-ops : number of operations to skip during test mode
 

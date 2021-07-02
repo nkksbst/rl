@@ -1,3 +1,5 @@
+import numpy as np
+import torch as T
 from util import ReplayBuffer
 from dqn import DeepQNetwork
 
