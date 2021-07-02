@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import collections
+import gym
 
 def plot_learning_curve(x, scores, epsilons, filename):
     fig = plt.figure()
