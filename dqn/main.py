@@ -1,5 +1,5 @@
 import gym
-from dqn import DQNAgent
+from dqn_agent import DQNAgent
 from util import plot_learning_curve
 import numpy as np
 import os
