@@ -2,7 +2,7 @@ import numpy as np
 import torch as T
 from util import ReplayBuffer
 from dqn import DeepQNetwork
-import torch.nn as nn   
+import torch.nn as nn
 class DQNAgent():
   def __init__(self, gamma, epsilon, lr, n_actions, input_dims, mem_size,
                batch_size, eps_min = 0.01, eps_dec = 5e-7,
@@ -42,7 +42,7 @@ class DQNAgent():
       action = np.random.choice(self.action_space)
     else: # exploitation
       # state is in a list i.e. [state] because NN network takes inputs of the form batch size x input_dims
-      state = T.tensor([state], dtype=T.float).to(self.q_eval.module.module.device)
+      state = T.tensor([state], dtype=T.float).to(self.q_eval.module.device)
       Q_values = self.q_eval.forward(state)
       action = T.argmax(Q_values).item() # to numpy array
     return action
@@ -54,11 +54,11 @@ class DQNAgent():
     state, action, reward, new_state, done = \
         self.memory.sample_buffer(self.batch_size)
 
-    states = T.tensor(state).to(self.q_eval.module.module.device)
-    rewards = T.tensor(reward).to(self.q_eval.module.module.device)
-    dones = T.tensor(done).to(self.q_eval.module.module.device)
-    actions = T.tensor(action).to(self.q_eval.module.module.device)
-    states_ = T.tensor(new_state).to(self.q_eval.module.module.device)
+    states = T.tensor(state).to(self.q_eval.module.device)
+    rewards = T.tensor(reward).to(self.q_eval.module.device)
+    dones = T.tensor(done).to(self.q_eval.module.device)
+    actions = T.tensor(action).to(self.q_eval.module.device)
+    states_ = T.tensor(new_state).to(self.q_eval.module.device)
 
     return states, rewards, actions, states_, dones
 
@@ -103,7 +103,7 @@ class DQNAgent():
 
     q_target = rewards + self.gamma * q_next
 
-    loss = self.q_eval.loss(q_target, q_pred).to(self.q_eval.module.module.device) # difference between target and current Q values
+    loss = self.q_eval.loss(q_target, q_pred).to(self.q_eval.module.device) # difference between target and current Q values
     loss.backward() # backpropagate
     self.q_eval.optimizer.step() # update weights
 
