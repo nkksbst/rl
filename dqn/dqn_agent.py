@@ -29,10 +29,12 @@ class DQNAgent():
                                input_dims= self.input_dims,
                                name = self.env_name + '_' + self.algo + '_q_eval',
                                chkpt_dir = self.chkpt_dir)
-    self.q_eval = nn.DataParallel(self.q_eval, device_ids=[0,1,2,3,4])
-
+                               
     self.device = T.device(T.device('cuda'))
-    self.q_eval.to(self.device)
+    self.q_eval = nn.DataParallel(self.q_eval, device_ids=[0,1,2,3,4]).to(self.device)
+
+    #
+    #self.q_eval.to(self.device)
 
     # backpop never happens in q_next - we only use this for target
     self.q_next = DeepQNetwork(self.lr, self.n_actions,
