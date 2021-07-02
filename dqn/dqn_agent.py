@@ -69,7 +69,7 @@ class DQNAgent():
 
   def replace_target_network(self):
     if self.learn_step_counter % self.replace_target_cnt == 0:
-      self.q_next.load_state_dict(self.q_eval.state_dict()) # update weights of target network the same with the behavior network
+      self.q_next.load_state_dict(self.q_eval.module.state_dict()) # update weights of target network the same with the behavior network
 
   def decrement_epsilon(self):
     self.epsilon = self.epsilon - self.eps_dec if self.epsilon > self.eps_min else self.eps_min
