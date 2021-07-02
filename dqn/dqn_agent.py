@@ -32,7 +32,7 @@ class DQNAgent():
 
     #self.q_eval.device = T.device(T.device('cuda'))
     self.q_eval = nn.DataParallel(self.q_eval, device_ids=[0,1,2,3,4])
-    self.q_eval = self.q_eval.to(self.q_eval.device)
+    self.q_eval = self.q_eval.to(self.device)
 
     #
     #self.q_eval.to(self.q_eval.module.device)
