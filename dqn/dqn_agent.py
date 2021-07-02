@@ -30,12 +30,12 @@ class DQNAgent():
                                name = self.env_name + '_' + self.algo + '_q_eval',
                                chkpt_dir = self.chkpt_dir)
 
-    self.device = T.device(T.device('cuda'))
-    self.q_eval = nn.DataParallel(self.q_eval, device_ids=[0,1,2,3,4])
-    self.q_eval = self.q_eval.to(self.device)
+    #self.device = T.device(T.device('cuda'))
+    #self.q_eval = nn.DataParallel(self.q_eval, device_ids=[0,1,2,3,4])
+    #self.q_eval = self.q_eval.to(self.device)
 
     #
-    #self.q_eval.to(self.q_eval.module.device)
+    #self.q_eval.to(self.q_eval.device)
 
     # backpop never happens in q_next - we only use this for target
     self.q_next = DeepQNetwork(self.lr, self.n_actions,
@@ -48,7 +48,7 @@ class DQNAgent():
       action = np.random.choice(self.action_space)
     else: # exploitation
       # state is in a list i.e. [state] because NN network takes inputs of the form batch size x input_dims
-      state = T.tensor([state], dtype=T.float).to(self.q_eval.module.device)
+      state = T.tensor([state], dtype=T.float).to(self.q_eval.device)
       Q_values = self.q_eval.forward(state)
       action = T.argmax(Q_values).item() # to numpy array
     return action
@@ -60,27 +60,27 @@ class DQNAgent():
     state, action, reward, new_state, done = \
         self.memory.sample_buffer(self.batch_size)
 
-    states = T.tensor(state).to(self.q_eval.module.device)
-    rewards = T.tensor(reward).to(self.q_eval.module.device)
-    dones = T.tensor(done).to(self.q_eval.module.device)
-    actions = T.tensor(action).to(self.q_eval.module.device)
-    states_ = T.tensor(new_state).to(self.q_eval.module.device)
+    states = T.tensor(state).to(self.q_eval.device)
+    rewards = T.tensor(reward).to(self.q_eval.device)
+    dones = T.tensor(done).to(self.q_eval.device)
+    actions = T.tensor(action).to(self.q_eval.device)
+    states_ = T.tensor(new_state).to(self.q_eval.device)
 
     return states, rewards, actions, states_, dones
 
   def replace_target_network(self):
     if self.learn_step_counter % self.replace_target_cnt == 0:
-      self.q_next.load_state_dict(self.q_eval.module.state_dict()) # update weights of target network the same with the behavior network
+      self.q_next.load_state_dict(self.q_eval.state_dict()) # update weights of target network the same with the behavior network
 
   def decrement_epsilon(self):
     self.epsilon = self.epsilon - self.eps_dec if self.epsilon > self.eps_min else self.eps_min
 
   def save_models(self):
-    self.q_eval.module.save_checkpoint()
+    self.q_eval.save_checkpoint()
     self.q_next.save_checkpoint()
 
   def load_models(self):
-    self.q_eval.module.load_checkpoint()
+    self.q_eval.load_checkpoint()
     self.q_next.load_checkpoint()
 
   def learn(self):
@@ -88,14 +88,14 @@ class DQNAgent():
     if(self.memory.mem_cntr < self.batch_size):
         return
 
-    self.q_eval.module.optimizer.zero_grad()
+    self.q_eval.optimizer.zero_grad()
 
     self.replace_target_network()
 
     states, rewards, actions, states_, dones = self.sample_memory()
 
     indices = np.arange(self.batch_size)
-    q_pred = self.q_eval.module.forward(states)[indices, actions]
+    q_pred = self.q_eval.forward(states)[indices, actions]
 
     # self.q_eval.forward(states) --> batch_size x n_actions = 32 x 6
 
@@ -109,7 +109,7 @@ class DQNAgent():
 
     q_target = rewards + self.gamma * q_next
 
-    loss = self.q_eval.loss(q_target, q_pred).to(self.q_eval.module.device) # difference between target and current Q values
+    loss = self.q_eval.loss(q_target, q_pred).to(self.q_eval.device) # difference between target and current Q values
     loss.backward() # backpropagate
     self.q_eval.optimizer.step() # update weights
 
