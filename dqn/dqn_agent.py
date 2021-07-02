@@ -22,8 +22,6 @@ class DQNAgent():
     self.chkpt_dir = chkpt_dir
     self.action_space = [i for i in range(self.n_actions)]
     self.learn_step_counter = 0 # learning trigger
-    self.device = T.device(T.device('cuda'))
-    self.to(self.device)
 
     self.memory = ReplayBuffer(mem_size, input_dims, n_actions)
 
@@ -31,8 +29,8 @@ class DQNAgent():
                                input_dims= self.input_dims,
                                name = self.env_name + '_' + self.algo + '_q_eval',
                                chkpt_dir = self.chkpt_dir)
-
-   self.q_eval = nn.DataParallel(self.q_eval, device_ids=[0, 1, 2, 3, 4])
+    self.q_eval = nn.DataParallel(self.q_eval)
+    self.q_eval.to(self.q_eval.device)
 
     # backpop never happens in q_next - we only use this for target
     self.q_next = DeepQNetwork(self.lr, self.n_actions,
