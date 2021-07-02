@@ -29,7 +29,7 @@ class DQNAgent():
                                input_dims= self.input_dims,
                                name = self.env_name + '_' + self.algo + '_q_eval',
                                chkpt_dir = self.chkpt_dir)
-    self.q_eval = nn.DataParallel(self.q_eval, device_ids=[0,1,2,3,4])
+    self.q_eval = nn.DataParallel(self.q_eval.cuda(), device_ids=[0,1,2,3,4])
 
     self.device = T.device(T.device('cuda'))
     self.q_eval.to(self.device)
