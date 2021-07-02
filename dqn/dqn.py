@@ -19,7 +19,7 @@ class DeepQNetwork(nn.Module):
 
     self.optimizer = optim.RMSprop(self.parameters(), lr = lr)
     self.loss = nn.MSELoss()
-    self.device = T.device(T.device('cuda'))
+    #self.device = T.device(T.device('cuda'))
     #self.to(self.device)
 
     self.checkpoint_dir = chkpt_dir

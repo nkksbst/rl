@@ -29,7 +29,7 @@ class DQNAgent():
                                input_dims= self.input_dims,
                                name = self.env_name + '_' + self.algo + '_q_eval',
                                chkpt_dir = self.chkpt_dir)
-                               
+
     self.device = T.device(T.device('cuda'))
     self.q_eval = nn.DataParallel(self.q_eval, device_ids=[0,1,2,3,4]).to(self.device)
 
@@ -69,7 +69,7 @@ class DQNAgent():
 
   def replace_target_network(self):
     if self.learn_step_counter % self.replace_target_cnt == 0:
-      self.q_next.load_state_dict(self.q_eval.module.state_dict()) # update weights of target network the same with the behavior network
+      self.q_next.load_state_dict(self.q_eval.state_dict()) # update weights of target network the same with the behavior network
 
   def decrement_epsilon(self):
     self.epsilon = self.epsilon - self.eps_dec if self.epsilon > self.eps_min else self.eps_min
@@ -87,14 +87,14 @@ class DQNAgent():
     if(self.memory.mem_cntr < self.batch_size):
         return
 
-    self.q_eval.module.optimizer.zero_grad()
+    self.q_eval.optimizer.zero_grad()
 
     self.replace_target_network()
 
     states, rewards, actions, states_, dones = self.sample_memory()
 
     indices = np.arange(self.batch_size)
-    q_pred = self.q_eval.module.forward(states)[indices, actions]
+    q_pred = self.q_eval.forward(states)[indices, actions]
 
     # self.q_eval.forward(states) --> batch_size x n_actions = 32 x 6
 
@@ -108,8 +108,8 @@ class DQNAgent():
 
     q_target = rewards + self.gamma * q_next
 
-    loss = self.q_eval.module.loss(q_target, q_pred).to(self.device) # difference between target and current Q values
+    loss = self.q_eval.loss(q_target, q_pred).to(self.device) # difference between target and current Q values
     loss.backward() # backpropagate
-    self.q_eval.module.optimizer.step() # update weights
+    self.q_eval.optimizer.step() # update weights
 
     self.decrement_epsilon()
