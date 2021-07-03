@@ -86,6 +86,7 @@ class PreprocessFrame(gym.ObservationWrapper):
         resized_screen = cv2.resize(new_frame, self.shape[1:],
                                     interpolation=cv2.INTER_AREA)
         new_obs = np.array(resized_screen, dtype=np.uint8).reshape(self.shape)
+        new_obs = np.swapaxes(new_obs, 2,0)
         new_obs = new_obs / 255.0
 
         return new_obs

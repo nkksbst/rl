@@ -45,12 +45,13 @@ class DQNAgent():
 
   def choose_action(self, state):
     if np.random.random() > self.epsilon: # exploration
-      action = np.random.choice(self.action_space)
-    else: # exploitation
       # state is in a list i.e. [state] because NN network takes inputs of the form batch size x input_dims
       state = T.tensor([state], dtype=T.float).to(self.q_eval.device)
       Q_values = self.q_eval.forward(state)
       action = T.argmax(Q_values).item() # to numpy array
+
+    else: # exploitation
+      action = np.random.choice(self.action_space)
     return action
 
   def store_transition(self, state, action, reward, state_, done):
@@ -66,10 +67,11 @@ class DQNAgent():
     actions = T.tensor(action).to(self.q_eval.device)
     states_ = T.tensor(new_state).to(self.q_eval.device)
 
-    return states, rewards, actions, states_, dones
+    #return states, rewards, actions, states_, dones
+    return states, actions, rewards, states_, dones
 
   def replace_target_network(self):
-    if self.learn_step_counter % self.replace_target_cnt == 0:
+    if self.replace_target_cnt is not None and self.learn_step_counter % self.replace_target_cnt == 0:
       self.q_next.load_state_dict(self.q_eval.state_dict()) # update weights of target network the same with the behavior network
 
   def decrement_epsilon(self):
@@ -92,22 +94,24 @@ class DQNAgent():
 
     self.replace_target_network()
 
-    states, rewards, actions, states_, dones = self.sample_memory()
+    states, actions, rewards, states_, dones = self.sample_memory()
 
     indices = np.arange(self.batch_size)
     q_pred = self.q_eval.forward(states)[indices, actions]
-
+    q_next = self.q_next.forward(states_)
+    q_eval = self.q_eval.forward(states_)
     # self.q_eval.forward(states) --> batch_size x n_actions = 32 x 6
 
     #q_pred = self.q_eval.forward(states)[actions]
     # this is wrong because we only want q values for the action that the agent actually took in that state
     # see example below
 
-    q_next = self.q_next.forward(states_).max(dim = 1)[0] # maximum of expected future reward
-
+    #q_next = self.q_next.forward(states_).max(dim = 1)[0] # maximum of expected future reward
+    max_actions = T.argmax(q_eval, dim=1)
     q_next[dones] = 0.0
 
-    q_target = rewards + self.gamma * q_next
+    #q_target = rewards + self.gamma * q_next
+    q_target = rewards + self.gamma*q_next[indices, max_actions]
 
     loss = self.q_eval.loss(q_target, q_pred).to(self.q_eval.device) # difference between target and current Q values
     loss.backward() # backpropagate
