@@ -3,6 +3,7 @@ import torch as T
 from util import ReplayBuffer
 from dqn import DeepQNetwork
 import torch.nn as nn
+
 class DQNAgent():
   def __init__(self, gamma, epsilon, lr, n_actions, input_dims, mem_size,
                batch_size, eps_min = 0.01, eps_dec = 5e-7,
@@ -71,9 +72,9 @@ class DQNAgent():
     return states, actions, rewards, states_, dones
 
   def replace_target_network(self):
-    if self.replace_target_cnt is not None and self.learn_step_counter % self.replace_target_cnt == 0:
-      self.q_next.load_state_dict(self.q_eval.state_dict()) # update weights of target network the same with the behavior network
-
+    if self.learn_step_counter % self.replace_target_cnt == 0:
+            self.q_next.load_state_dict(self.q_eval.state_dict())
+            
   def decrement_epsilon(self):
     self.epsilon = self.epsilon - self.eps_dec if self.epsilon > self.eps_min else self.eps_min
 
@@ -98,23 +99,30 @@ class DQNAgent():
 
     indices = np.arange(self.batch_size)
     q_pred = self.q_eval.forward(states)[indices, actions]
-    q_next = self.q_next.forward(states_)
-    q_eval = self.q_eval.forward(states_)
+
     # self.q_eval.forward(states) --> batch_size x n_actions = 32 x 6
 
     #q_pred = self.q_eval.forward(states)[actions]
     # this is wrong because we only want q values for the action that the agent actually took in that state
     # see example below
 
-    #q_next = self.q_next.forward(states_).max(dim = 1)[0] # maximum of expected future reward
-    max_actions = T.argmax(q_eval, dim=1)
+    q_next = self.q_next.forward(states_).max(dim = 1)[0] # maximum of expected future reward
     q_next[dones] = 0.0
 
-    #q_target = rewards + self.gamma * q_next
-    q_target = rewards + self.gamma*q_next[indices, max_actions]
+    q_target = rewards + self.gamma * q_next
+    
+    '''
+    Double DQN
+    target = Rt+1 + gamma Q_next(St+1, argmaxQeval(St+1, a))
+    
+    max_actions =  T.argmax(q_eval, dim=1)
+    q_next = self.q_next.forward(states_)
+    q_target = rewards + self.gamma * q_next[indices, max_actions]
+    '''
 
     loss = self.q_eval.loss(q_target, q_pred).to(self.q_eval.device) # difference between target and current Q values
     loss.backward() # backpropagate
     self.q_eval.optimizer.step() # update weights
+    self.learn_step_counter += 1
 
     self.decrement_epsilon()

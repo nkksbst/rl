@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 import os
+
 class DeepQNetwork(nn.Module):
 
   def __init__(self, lr, n_actions, name, input_dims, chkpt_dir):
@@ -19,7 +20,7 @@ class DeepQNetwork(nn.Module):
 
     self.optimizer = optim.RMSprop(self.parameters(), lr = lr)
     self.loss = nn.MSELoss()
-    self.device = T.device(T.device('cuda'))
+    self.device = T.device('cpu')
     self.to(self.device)
 
     self.checkpoint_dir = chkpt_dir
